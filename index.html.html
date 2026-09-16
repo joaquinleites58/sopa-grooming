@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sopa de Letras - Grooming</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #dff6ff, #f0e6ff);
+    text-align: center;
+    padding: 15px;
+    color: #222;
+    margin: 0;
+}
+
+.contenedor {
+    width: 100%;
+    max-width: 750px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.15);
+}
+
+h1 {
+    color: #6a35c7;
+}
+
+#codigo {
+    padding: 10px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: 2px solid #6a35c7;
+    max-width: 90%;
+}
+
+button {
+    padding: 10px 18px;
+    margin: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #6a35c7;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #5125a5;
+}
+
+#juego {
+    display: none;
+}
+
+#sopa {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 3px;
+    width: min(95vw, 550px);
+    margin: 20px auto;
+    touch-action: none;
+    user-select: none;
+}
+
+.letra {
+    aspect-ratio: 1 / 1;
+    background: #eeeeee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: clamp(13px, 4vw, 22px);
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.letra.seleccionada {
+    background: #ffd54f;
+}
+
+.letra.encontrada {
+    background: #55c96b;
+    color: white;
+}
+
+ul {
+    max-width: 300px;
+    margin: auto;
+    padding-left: 25px;
+}
+
+li {
+    text-align: left;
+    margin: 6px;
+}
+
+.encontradaTexto {
+    color: green;
+    text-decoration: line-through;
+    font-weight: bold;
+}
+
+#mensaje {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 15px;
+}
+
+#puntaje {
+    font-size: 20px;
+    color: #6a35c7;
+    font-weight: bold;
+}
+
+textarea {
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #aaa;
+    width: 90%;
+    max-width: 450px;
+    font-family: Arial;
+    font-size: 16px;
+}
+
+.instruccion {
+    background: #f3edff;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<h1>🔎 Sopa de Letras: Grooming</h1>
+
+<p>
+Aprendamos juntos sobre seguridad y prevención en internet.
+</p>
+
+<div id="inicio">
+
+<p><strong>🔐 Ingresa el código para comenzar:</strong></p>
+
+<input
+    id="codigo"
+    type="text"
+    placeholder="Código"
+>
+
+<br>
+
+<button onclick="entrar()">Entrar</button>
+
+<p id="error"></p>
+
+</div>
+
+
+<div id="juego">
+
+<h2>🧩 Encuentra las palabras</h2>
+
+<div class="instruccion">
+
+<p>
+📱 <strong>Celular:</strong> mantén presionado sobre la primera letra
+y arrastra hasta la última.
+</p>
+
+<p>
+💻 <strong>PC:</strong> mantén presionado el mouse y arrastra.
+</p>
+
+<p>
+Las palabras pueden aparecer horizontalmente, verticalmente
+o en diagonal, incluso al revés.
+</p>
+
+</div>
+
+<div id="sopa"></div>
+
+<button onclick="comprobar()">
+✅ Comprobar
+</button>
+
+<button onclick="limpiar()">
+🔄 Limpiar selección
+</button>
+
+<p id="puntaje">
+Puntaje: 0 / 10
+</p>
+
+<h3>📋 Palabras que debes encontrar</h3>
+
+<ul id="palabras"></ul>
+
+<p id="mensaje"></p>
+
+<hr>
+
+<h3>💬 Pregunta final</h3>
+
+<p>
+¿Qué debemos hacer si una persona desconocida nos pide fotos,
+datos personales o encontrarnos en persona por internet?
+</p>
+
+<textarea
+    id="respuesta"
+    rows="5"
+    placeholder="Escribe aquí tu respuesta..."
+></textarea>
+
+<br>
+
+<button onclick="enviarRespuesta()">
+Enviar respuesta
+</button>
+
+<p id="resultadoRespuesta"></p>
+
+</div>
+
+</div>
+
+
+<script>
+
+const codigoCorrecto = "GROOMING2026";
+
+
+const palabras = [
+    "GROOMING",
+    "INTERNET",
+    "SEGURIDAD",
+    "PRIVACIDAD",
+    "DENUNCIA",
+    "ADULTO",
+    "AYUDA",
+    "CUIDADO",
+    "REDES",
+    "CONFIANZA"
+];
+
+
+const TAMANO = 11;
+
+
+/* ==========================================
+   GENERAR TABLERO ALEATORIO
+========================================== */
+
+function generarTablero() {
+
+    const direcciones = [
+
+        [0, 1],
+        [0, -1],
+
+        [1, 0],
+        [-1, 0],
+
+        [1, 1],
+        [1, -1],
+
+        [-1, 1],
+        [-1, -1]
+
+    ];
+
+
+    while (true) {
+
+        let tableroNuevo =
+            Array(TAMANO * TAMANO).fill("");
+
+
+        let correcto = true;
+
+
+        /*
+            Colocamos primero las palabras
+            más largas.
+        */
+
+        const palabrasOrdenadas =
+            [...palabras].sort(
+                (a, b) => b.length - a.length
+            );
+
+
+        for (
+            const palabra of palabrasOrdenadas
+        ) {
+
+            let colocada = false;
+
+
+            for (
+                let intento = 0;
+                intento < 1000;
+                intento++
+            ) {
+
+                const direccion =
+                    direcciones[
+                        Math.floor(
+                            Math.random() *
+                            direcciones.length
+                        )
+                    ];
+
+
+                const filaInicial =
+                    Math.floor(
+                        Math.random() *
+                        TAMANO
+                    );
+
+
+                const columnaInicial =
+                    Math.floor(
+                        Math.random() *
+                        TAMANO
+                    );
+
+
+                const filaFinal =
+                    filaInicial +
+                    direccion[0] *
+                    (palabra.length - 1);
+
+
+                const columnaFinal =
+                    columnaInicial +
+                    direccion[1] *
+                    (palabra.length - 1);
+
+
+                if (
+                    filaFinal < 0 ||
+                    filaFinal >= TAMANO ||
+                    columnaFinal < 0 ||
+                    columnaFinal >= TAMANO
+                ) {
+
+                    continue;
+                }
+
+
+                let puedeColocarse = true;
+
+
+                for (
+                    let i = 0;
+                    i < palabra.length;
+                    i++
+                ) {
+
+                    const fila =
+                        filaInicial +
+                        direccion[0] * i;
+
+
+                    const columna =
+                        columnaInicial +
+                        direccion[1] * i;
+
+
+                    const indice =
+                        fila * TAMANO +
+                        columna;
+
+
+                    if (
+                        tableroNuevo[indice] !== "" &&
+                        tableroNuevo[indice] !== palabra[i]
+                    ) {
+
+                        puedeColocarse = false;
+
+                        break;
+                    }
+                }
+
+
+                if (!puedeColocarse) {
+
+                    continue;
+                }
+
+
+                for (
+                    let i = 0;
+                    i < palabra.length;
+                    i++
+                ) {
+
+                    const fila =
+                        filaInicial +
+                        direccion[0] * i;
+
+
+                    const columna =
+                        columnaInicial +
+                        direccion[1] * i;
+
+
+                    const indice =
+                        fila * TAMANO +
+                        columna;
+
+
+                    tableroNuevo[indice] =
+                        palabra[i];
+                }
+
+
+                colocada = true;
+
+                break;
+            }
+
+
+            if (!colocada) {
+
+                correcto = false;
+
+                break;
+            }
+        }
+
+
+        if (correcto) {
+
+            const letras =
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+
+            for (
+                let i = 0;
+                i < tableroNuevo.length;
+                i++
+            ) {
+
+                if (
+                    tableroNuevo[i] === ""
+                ) {
+
+                    tableroNuevo[i] =
+                        letras[
+                            Math.floor(
+                                Math.random() *
+                                letras.length
+                            )
+                        ];
+                }
+            }
+
+
+            return tableroNuevo;
+        }
+    }
+}
+
+
+/* Crear tablero */
+
+let tablero = generarTablero();
+
+
+let seleccion = [];
+
+let encontradas = [];
+
+let arrastrando = false;
+
+let inicioSeleccion = null;
+
+
+/* ==========================================
+   ENTRAR
+========================================== */
+
+function entrar() {
+
+    const codigo =
+        document
+        .getElementById("codigo")
+        .value
+        .trim()
+        .toUpperCase();
+
+
+    if (
+        codigo === codigoCorrecto
+    ) {
+
+        document
+        .getElementById("inicio")
+        .style.display = "none";
+
+
+        document
+        .getElementById("juego")
+        .style.display = "block";
+
+
+        crearSopa();
+
+
+    } else {
+
+        document
+        .getElementById("error")
+        .innerHTML =
+        "❌ Código incorrecto. Intenta nuevamente.";
+
+
+        document
+        .getElementById("error")
+        .style.color = "red";
+    }
+}
+
+
+/* ==========================================
+   CREAR SOPA
+========================================== */
+
+function crearSopa() {
+
+    const contenedor =
+        document.getElementById("sopa");
+
+
+    contenedor.innerHTML = "";
+
+
+    tablero.forEach(
+        (letra, indice) => {
+
+        const celda =
+            document.createElement("div");
+
+
+        celda.className =
+            "letra";
+
+
+        celda.innerText =
+            letra;
+
+
+        celda.dataset.indice =
+            indice;
+
+
+        celda.addEventListener(
+            "mousedown",
+            iniciarSeleccion
+        );
+
+
+        celda.addEventListener(
+            "mouseenter",
+            moverSeleccion
+        );
+
+
+        celda.addEventListener(
+            "touchstart",
+            iniciarSeleccion,
+            { passive: false }
+        );
+
+
+        celda.addEventListener(
+            "touchmove",
+            moverTouch,
+            { passive: false }
+        );
+
+
+        contenedor.appendChild(
+            celda
+        );
+    });
+
+
+    document.addEventListener(
+        "mouseup",
+        terminarSeleccion
+    );
+
+
+    document.addEventListener(
+        "touchend",
+        terminarSeleccion
+    );
+
+
+    const lista =
+        document.getElementById(
+            "palabras"
+        );
+
+
+    lista.innerHTML = "";
+
+
+    palabras.forEach(
+        palabra => {
+
+        const li =
+            document.createElement("li");
+
+
+        li.id =
+            "palabra-" + palabra;
+
+
+        li.innerText =
+            palabra;
+
+
+        lista.appendChild(li);
+    });
+}
+
+
+/* ==========================================
+   INICIAR SELECCIÓN
+========================================== */
+
+function iniciarSeleccion(event) {
+
+    event.preventDefault();
+
+
+    const indice =
+        Number(
+            event.currentTarget
+            .dataset
+            .indice
+        );
+
+
+    arrastrando = true;
+
+
+    inicioSeleccion =
+        indice;
+
+
+    seleccion =
+        [indice];
+
+
+    actualizarSeleccion();
+}
+
+
+/* ==========================================
+   MOVER MOUSE
+========================================== */
+
+function moverSeleccion(event) {
+
+    if (!arrastrando) {
+
+        return;
+    }
+
+
+    const indice =
+        Number(
+            event.currentTarget
+            .dataset
+            .indice
+        );
+
+
+    seleccionarLinea(indice);
+}
+
+
+/* ==========================================
+   MOVER DEDO
+========================================== */
+
+function moverTouch(event) {
+
+    if (!arrastrando) {
+
+        return;
+    }
+
+
+    event.preventDefault();
+
+
+    const touch =
+        event.touches[0];
+
+
+    const elemento =
+        document.elementFromPoint(
+            touch.clientX,
+            touch.clientY
+        );
+
+
+    if (
+        elemento &&
+        elemento.classList.contains(
+            "letra"
+        )
+    ) {
+
+        const indice =
+            Number(
+                elemento.dataset.indice
+            );
+
+
+        seleccionarLinea(
+            indice
+        );
+    }
+}
+
+
+/* ==========================================
+   SELECCIONAR LÍNEA
+========================================== */
+
+function seleccionarLinea(fin) {
+
+    if (
+        inicioSeleccion === null
+    ) {
+
+        return;
+    }
+
+
+    const filaInicio =
+        Math.floor(
+            inicioSeleccion /
+            TAMANO
+        );
+
+
+    const columnaInicio =
+        inicioSeleccion %
+        TAMANO;
+
+
+    const filaFin =
+        Math.floor(
+            fin /
+            TAMANO
+        );
+
+
+    const columnaFin =
+        fin %
+        TAMANO;
+
+
+    const diferenciaFila =
+        filaFin -
+        filaInicio;
+
+
+    const diferenciaColumna =
+        columnaFin -
+        columnaInicio;
+
+
+    const horizontal =
+        diferenciaFila === 0;
+
+
+    const vertical =
+        diferenciaColumna === 0;
+
+
+    const diagonal =
+        Math.abs(
+            diferenciaFila
+        ) ===
+        Math.abs(
+            diferenciaColumna
+        );
+
+
+    if (
+        !horizontal &&
+        !vertical &&
+        !diagonal
+    ) {
+
+        return;
+    }
+
+
+    const pasoFila =
+        diferenciaFila === 0
+        ? 0
+        : diferenciaFila > 0
+        ? 1
+        : -1;
+
+
+    const pasoColumna =
+        diferenciaColumna === 0
+        ? 0
+        : diferenciaColumna > 0
+        ? 1
+        : -1;
+
+
+    const cantidad =
+        Math.max(
+            Math.abs(
+                diferenciaFila
+            ),
+            Math.abs(
+                diferenciaColumna
+            )
+        );
+
+
+    seleccion = [];
+
+
+    for (
+        let i = 0;
+        i <= cantidad;
+        i++
+    ) {
+
+        const fila =
+            filaInicio +
+            pasoFila * i;
+
+
+        const columna =
+            columnaInicio +
+            pasoColumna * i;
+
+
+        const indice =
+            fila * TAMANO +
+            columna;
+
+
+        seleccion.push(
+            indice
+        );
+    }
+
+
+    actualizarSeleccion();
+}
+
+
+/* ==========================================
+   MOSTRAR SELECCIÓN
+========================================== */
+
+function actualizarSeleccion() {
+
+    document
+        .querySelectorAll(".letra")
+        .forEach(celda => {
+
+        if (
+            !celda.classList.contains(
+                "encontrada"
+            )
+        ) {
+
+            celda.classList.remove(
+                "seleccionada"
+            );
+        }
+    });
+
+
+    seleccion.forEach(
+        indice => {
+
+        const celda =
+            document.querySelector(
+                `[data-indice="${indice}"]`
+            );
+
+
+        if (
+            celda &&
+            !celda.classList.contains(
+                "encontrada"
+            )
+        ) {
+
+            celda.classList.add(
+                "seleccionada"
+            );
+        }
+    });
+}
+
+
+/* ==========================================
+   TERMINAR SELECCIÓN
+========================================== */
+
+function terminarSeleccion() {
+
+    if (!arrastrando) {
+
+        return;
+    }
+
+
+    arrastrando = false;
+}
+
+
+/* ==========================================
+   COMPROBAR
+========================================== */
+
+function comprobar() {
+
+    if (
+        seleccion.length < 2
+    ) {
+
+        document
+        .getElementById(
+            "mensaje"
+        )
+        .innerText =
+        "👆 Selecciona una palabra primero.";
+
+        return;
+    }
+
+
+    const texto =
+        seleccion
+        .map(
+            indice =>
+            tablero[indice]
+        )
+        .join("");
+
+
+    const reverso =
+        texto
+        .split("")
+        .reverse()
+        .join("");
+
+
+    let palabraEncontrada =
+        null;
+
+
+    if (
+        palabras.includes(texto) &&
+        !encontradas.includes(texto)
+    ) {
+
+        palabraEncontrada =
+            texto;
+
+    } else if (
+        palabras.includes(reverso) &&
+        !encontradas.includes(reverso)
+    ) {
+
+        palabraEncontrada =
+            reverso;
+    }
+
+
+    if (
+        palabraEncontrada
+    ) {
+
+        encontradas.push(
+            palabraEncontrada
+        );
+
+
+        seleccion.forEach(
+            indice => {
+
+            const celda =
+                document.querySelector(
+                    `[data-indice="${indice}"]`
+                );
+
+
+            if (celda) {
+
+                celda.classList.remove(
+                    "seleccionada"
+                );
+
+
+                celda.classList.add(
+                    "encontrada"
+                );
+            }
+        });
+
+
+        const palabraElemento =
+            document.getElementById(
+                "palabra-" +
+                palabraEncontrada
+            );
+
+
+        if (
+            palabraElemento
+        ) {
+
+            palabraElemento.className =
+                "encontradaTexto";
+        }
+
+
+        document
+        .getElementById(
+            "puntaje"
+        )
+        .innerText =
+        "Puntaje: " +
+        encontradas.length +
+        " / " +
+        palabras.length;
+
+
+        document
+        .getElementById(
+            "mensaje"
+        )
+        .innerText =
+        "🎉 ¡Correcto! Encontraste: " +
+        palabraEncontrada;
+
+
+        seleccion = [];
+
+
+        inicioSeleccion =
+            null;
+
+
+        if (
+            encontradas.length ===
+            palabras.length
+        ) {
+
+            document
+            .getElementById(
+                "mensaje"
+            )
+            .innerHTML =
+            "🏆 ¡FELICITACIONES! " +
+            "Completaste toda la sopa de letras.";
+        }
+
+
+    } else {
+
+        document
+        .getElementById(
+            "mensaje"
+        )
+        .innerText =
+        "❌ Esa selección no corresponde " +
+        "a una palabra. Intenta nuevamente.";
+
+
+        limpiar();
+    }
+}
+
+
+/* ==========================================
+   LIMPIAR
+========================================== */
+
+function limpiar() {
+
+    seleccion.forEach(
+        indice => {
+
+        const celda =
+            document.querySelector(
+                `[data-indice="${indice}"]`
+            );
+
+
+        if (
+            celda &&
+            !celda.classList.contains(
+                "encontrada"
+            )
+        ) {
+
+            celda.classList.remove(
+                "seleccionada"
+            );
+        }
+    });
+
+
+    seleccion = [];
+
+    inicioSeleccion =
+        null;
+}
+
+
+/* ==========================================
+   RESPUESTA FINAL
+========================================== */
+
+function enviarRespuesta() {
+
+    const respuesta =
+        document
+        .getElementById(
+            "respuesta"
+        )
+        .value
+        .trim();
+
+
+    if (
+        respuesta.length < 10
+    ) {
+
+        document
+        .getElementById(
+            "resultadoRespuesta"
+        )
+        .innerText =
+        "✏️ Escribe una respuesta " +
+        "un poco más completa.";
+
+        return;
+    }
+
+
+    document
+    .getElementById(
+        "resultadoRespuesta"
+    )
+    .innerHTML =
+    "✅ ¡Respuesta registrada! " +
+    "Recuerda: no compartas fotos ni " +
+    "datos personales con desconocidos " +
+    "y habla con un adulto de confianza.";
+}
+
+</script>
+
+</body>
+</html>
